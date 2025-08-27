@@ -1,5 +1,7 @@
-import requests
+'''Simple cli application for fetching and sorting github events'''
 import argparse
+import requests
+
 
 event_types = ['PushEvent', 'PullRequestEvent', 'IssuesEvent', 'IssueCommentEvent',
                'CreateEvent', 'DeleteEvent', 'ForkEvent', 'WatchEvent', 'ReleaseEvent',
@@ -7,6 +9,7 @@ event_types = ['PushEvent', 'PullRequestEvent', 'IssuesEvent', 'IssueCommentEven
 
 
 def parse_arguments():
+    """function of parsing the CLI arguments"""
     parser = argparse.ArgumentParser(description="GitHub Events Viewer CLI")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -15,14 +18,17 @@ def parse_arguments():
         "events", help="Display recent GitHub events")
     event_parser.add_argument("username", type=str, help="GitHub username")
     event_parser.add_argument("--sort", type=str, default='',
-                              help="Filter event type ('PushEvent', 'PullRequestEvent', 'IssuesEvent', 'IssueCommentEvent','CreateEvent', 'DeleteEvent', 'ForkEvent', 'WatchEvent', 'ReleaseEvent','PublicEvent', 'PullRequestReviewCommentEvent')")
-
+                              help="Filter event type ('PushEvent', 'PullRequestEvent', "
+                              "'IssuesEvent', 'IssueCommentEvent','CreateEvent', 'DeleteEvent',"
+                              " 'ForkEvent', 'WatchEvent', 'ReleaseEvent','PublicEvent',"
+                              " 'PullRequestReviewCommentEvent')")
     return parser.parse_args()
 
 
 def fetch_events(username):
+    """fetch recent events from a github account"""
     url = f"https://api.github.com/users/{username}/events"
-    response = requests.get(url)
+    response = requests.get(url, timeout=20)
     if response.status_code == 200:
         return response.json()
     else:
@@ -30,9 +36,7 @@ def fetch_events(username):
 
 
 def count_events(events):
-    event_types = ['PushEvent', 'PullRequestEvent', 'IssuesEvent', 'IssueCommentEvent',
-                   'CreateEvent', 'DeleteEvent', 'ForkEvent', 'WatchEvent', 'ReleaseEvent',
-                   'PublicEvent', 'PullRequestReviewCommentEvent']
+    """count all events based on the event type"""
     events_count = []
     for event_type in event_types:
         counter = 0
@@ -44,14 +48,20 @@ def count_events(events):
     print("-"*25)
     for i, event_type in enumerate(event_types):
         if events_count[i] != 0:
-            print(f"{event_type:<15}{events_count[i]}")
+            print(f"{event_type:<15}{events_count[i]:<2}")
         # def PushEvent():
+    if sum(events_count) < len(events):
+        print(f"{"Others:":<15}{len(events)-sum(events_count)}")
     print("-"*25)
 
 
 def show_events(events, sort=''):
+    """show all events or sorted based on type"""
     if sort != '' and sort not in event_types:
-        print("sorting arugment not available please use: ('PushEvent', 'PullRequestEvent', 'IssuesEvent', 'IssueCommentEvent','CreateEvent', 'DeleteEvent', 'ForkEvent', 'WatchEvent', 'ReleaseEvent','PublicEvent', 'PullRequestReviewCommentEvent')")
+        print("sorting arugment not available please use: ('PushEvent',"
+              " 'PullRequestEvent', 'IssuesEvent', 'IssueCommentEvent','CreateEvent',"
+              " 'DeleteEvent', 'ForkEvent', 'WatchEvent', 'ReleaseEvent','PublicEvent',"
+              " 'PullRequestReviewCommentEvent')")
     for event in events:
         event_type = event['type']
         if sort and event_type != sort:
@@ -96,6 +106,7 @@ def show_events(events, sort=''):
 
 
 def main():
+    """main function of the application"""
     args = parse_arguments()
     events = fetch_events(args.username)
 

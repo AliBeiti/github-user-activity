@@ -88,7 +88,7 @@ def show_events(events, sort=''):
                 f"{actor} Deleted {event['payload']['ref_type']} {event['payload']['ref']}.")
         elif event_type == 'ForkEvent':
             print(
-                f"{actor} forked {event['payload']['forkee']}.")
+                f"{actor} forked {event['payload']['forkee']['name']}.")
         elif event_type == 'WatchEvent':
             print(
                 f"{actor} {event['payload']['action']} watched {repo}.")
